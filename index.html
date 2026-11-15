@@ -89,6 +89,23 @@ nav ul{display:none}
 section{padding:72px 0}
 .hero{padding:56px 0 64px}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.pulse{animation:none;opacity:1}}
+.bot-fab{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;padding:10px 18px;box-shadow:0 6px 24px rgba(15,23,42,.25);cursor:pointer}
+.bot{position:fixed;right:20px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:30;width:min(380px,calc(100vw - 40px));height:min(520px,calc(100vh - 140px));display:none;flex-direction:column;background:var(--bg);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px rgba(15,23,42,.28);overflow:hidden}
+.bot.open{display:flex}
+.bh{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#0F172A;color:#fff;font:700 .95rem var(--hd)}
+.bh .es{color:#CBD5E1}
+.bh button{background:none;border:0;color:#fff;font-size:1.5rem;cursor:pointer;line-height:1}
+.bm{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.m{max-width:85%;padding:9px 13px;border-radius:12px;font-size:.93rem;line-height:1.5}
+.m.b{background:var(--alt);align-self:flex-start}
+.m.u{background:var(--accent);color:var(--on-accent);align-self:flex-end}
+.bc{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}
+.bc button{font:400 .8rem var(--bd);color:var(--accent);background:none;border:1px solid var(--accent);border-radius:99px;padding:4px 11px;cursor:pointer}
+.bc button:hover{background:var(--accent);color:var(--on-accent)}
+.bi{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+.bi input{flex:1;min-width:0;font:400 .95rem var(--bd);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+.bi button{padding:8px 14px;cursor:pointer}
+.bn{font-size:.72rem;color:var(--muted);padding:0 14px 8px}
 </style>
 </head>
 <body>
@@ -204,5 +221,61 @@ section{padding:72px 0}
 </main>
 
 <footer><div class="wrap"><span>© 2026 Marcelo Barradas</span><span><a href="#top">Back to top<i class="es" lang="es">Volver arriba</i></a></span></div></footer>
+<button class="bot-fab btn pri" id="fab" aria-expanded="false" aria-controls="bot">Ask my assistant<i class="es" lang="es">Pregunta a mi asistente</i></button>
+<div class="bot" id="bot" role="dialog" aria-label="Assistant / Asistente">
+<div class="bh"><span>Marcelo’s assistant<i class="es" lang="es">Asistente de Marcelo</i></span><button id="bx" aria-label="Close / Cerrar">×</button></div>
+<div class="bm" id="bm" aria-live="polite"></div>
+<div class="bc" id="bc"></div>
+<div class="bn">Automated assistant, not Marcelo himself. / Asistente automático, no es Marcelo.</div>
+<div class="bi"><input id="bt" type="text" placeholder="Type your question… / Escribe tu pregunta…" aria-label="Question / Pregunta"><button class="btn pri" id="bs">Send<i class="es" lang="es">Enviar</i></button></div>
+</div>
+<script>
+(function(){
+// ===== CONFIGURACIÓN =====
+// Si despliegas un backend de IA (ver instrucciones), pon aquí su URL. Vacío = solo respuestas predefinidas.
+var ENDPOINT="";
+var EMAIL="#Aqui debes ingresar tu correo";
+// Base de conocimiento: edita o añade entradas (k = palabras clave, en/es = respuesta).
+var KB=[
+{k:["hello","hi","who","about","background","profile","summary","hola","quién","quien","sobre","perfil","resumen"],
+en:"Marcelo is a mechatronics engineer working on AI, computer vision, edge computing, robotics and embedded systems, with experience in applied research and technical teaching.",
+es:"Marcelo es ingeniero mecatrónico y trabaja en IA, visión por computador, edge computing, robótica y sistemas embebidos, con experiencia en investigación aplicada y docencia técnica."},
+{k:["skill","stack","tech","python","esp32","arduino","ros","matlab","edge","embedded","habilidad","tecnolog","embebid","herramienta"],
+en:"Main areas: AI and computer vision, edge computing, robotics (ROS, MoveIt, MATLAB) and embedded systems (ESP32, Arduino), with Python and ML frameworks.",
+es:"Áreas principales: IA y visión por computador, edge computing, robótica (ROS, MoveIt, MATLAB) y sistemas embebidos (ESP32, Arduino), con Python y frameworks de ML."},
+{k:["project","humanoid","tomosar","x-ray","xray","portfolio","proyecto","robot","rayos"],
+en:"Featured projects: a humanoid robot driven by an ESP32 with six servos, TomoSAR urban reconstruction with an unrolled FISTA network, plus computer vision and X-ray work. Details are in the Projects section.",
+es:"Proyectos destacados: un robot humanoide con ESP32 y seis servos, reconstrucción urbana TomoSAR con una red FISTA desenrollada, y trabajos de visión por computador y rayos X. Los detalles están en la sección Proyectos."},
+{k:["research","publication","paper","report","investigaci","publicaci","informe","articulo","artículo"],
+en:"Marcelo does applied research, mainly on TomoSAR reconstruction with deep unfolding. See the Research section for publications and technical reports.",
+es:"Marcelo hace investigación aplicada, principalmente en reconstrucción TomoSAR con deep unfolding. En la sección Investigación están las publicaciones e informes técnicos."},
+{k:["teach","course","workshop","class","instructor","docen","curso","taller","clase","enseñ","ensen"],
+en:"Marcelo teaches embedded systems, computer vision and Edge AI through hands-on projects with ESP32, Arduino, Python and ML frameworks.",
+es:"Marcelo enseña sistemas embebidos, visión por computador y Edge AI con proyectos prácticos en ESP32, Arduino, Python y frameworks de ML."},
+{k:["experience","work history","intern","experiencia","trayectoria"],
+en:"His experience combines applied research, technical teaching and interdisciplinary engineering projects. See the Experience section for the timeline.",
+es:"Su experiencia combina investigación aplicada, docencia técnica y proyectos de ingeniería interdisciplinarios. La línea de tiempo está en la sección Experiencia."},
+{k:["hire","available","availability","remote","freelance","job","position","opportunity","rate","salary","disponib","trabajo","remoto","contratar","oportunidad","puesto","vacante"],
+en:"Marcelo is open to research, development, internships, freelance projects and remote work. For rates and start dates, please write to him directly: "+EMAIL,
+es:"Marcelo está disponible para investigación, desarrollo, internships, proyectos freelance y trabajo remoto. Para tarifas y fechas de inicio, escríbele directamente: "+EMAIL},
+{k:["contact","email","mail","cv","resume","linkedin","github","reach","contacto","correo","curr","contactar"],
+en:"You can reach Marcelo at "+EMAIL+" or through the Contact section of this page. His CV is in the Profile section.",
+es:"Puedes escribir a Marcelo a "+EMAIL+" o desde la sección Contacto de esta página. Su CV está en la sección Perfil."}
+];
+var FB={en:"I don’t have that information. Please contact Marcelo directly: "+EMAIL,es:"No tengo esa información. Por favor contacta directamente a Marcelo: "+EMAIL};
+var CH=[["Projects","Proyectos","projects"],["Experience","Experiencia","experience"],["Availability","Disponibilidad","availability"],["Contact / CV","Contacto / CV","contact"]];
+var $=function(i){return document.getElementById(i)},bot=$("bot"),bm=$("bm"),bt=$("bt"),hist=[],greeted=false;
+function isEs(t){t=t.toLowerCase();return /[ñáéíóú¿¡]/.test(t)||/(hola|qué|cómo|como|cuál|puedes|tienes|trabajo|proyecto|experiencia|disponib|correo|contacto|quién|quien|sobre|dónde|donde|cuéntame|buenas)/.test(t)}
+function add(t,c){var d=document.createElement("div");d.className="m "+c;d.textContent=t;bm.appendChild(d);bm.scrollTop=bm.scrollHeight}
+function local(t){var l=t.toLowerCase(),lg=isEs(t)?"es":"en",best=null,s=0;KB.forEach(function(e){var n=0;e.k.forEach(function(w){if(l.indexOf(w)>-1)n++});if(n>s){s=n;best=e}});return(best||FB)[lg]}
+async function send(t){t=t.trim();if(!t)return;add(t,"u");bt.value="";hist.push({role:"user",content:t});var r;
+if(ENDPOINT){try{var x=await fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:hist})});var j=await x.json();r=j.reply}catch(e){}}
+if(!r)r=local(t);hist.push({role:"assistant",content:r});add(r,"b")}
+function open(o){bot.classList.toggle("open",o);$("fab").setAttribute("aria-expanded",o);if(o){if(!greeted){greeted=true;add("Hi! I’m Marcelo’s automated assistant. Ask me about his projects, experience or availability. / ¡Hola! Soy el asistente automático de Marcelo. Pregúntame por sus proyectos, experiencia o disponibilidad.","b")}bt.focus()}}
+CH.forEach(function(c){var b=document.createElement("button");b.textContent=c[0]+" / "+c[1];b.onclick=function(){send(c[2])};$("bc").appendChild(b)});
+$("fab").onclick=function(){open(!bot.classList.contains("open"))};$("bx").onclick=function(){open(false)};
+$("bs").onclick=function(){send(bt.value)};bt.onkeydown=function(e){if(e.key==="Enter")send(bt.value)};
+})();
+</script>
 </body>
 </html>
