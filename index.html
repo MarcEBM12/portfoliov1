@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Portfolio by Marcelo Barradas</title>
+<title>Marcelo Barradas · AI, Computer Vision & Robotics</title>
 <meta name="description" content="Mechatronics engineer. Intelligent systems in robotics, AI, computer vision and embedded technology. / Ingeniero mecatrónico: sistemas inteligentes en robótica, IA, computer vision y tecnología embebida.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -106,6 +106,10 @@ section{padding:72px 0}
 .bi input{flex:1;min-width:0;font:400 .95rem var(--bd);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
 .bi button{padding:8px 14px;cursor:pointer}
 .bn{font-size:.72rem;color:var(--muted);padding:0 14px 8px}
+.cf{max-width:560px;margin-top:48px}
+.cf label{display:block;margin-bottom:14px;font-weight:500}
+.cf input,.cf textarea{width:100%;font:400 1rem var(--bd);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:4px}
+.cf textarea{resize:vertical}
 </style>
 </head>
 <body>
@@ -163,7 +167,7 @@ section{padding:72px 0}
 <section id="projects" class="alt"><div class="wrap">
 <span class="n">02</span><h2>Projects<i class="es" lang="es">Proyectos</i></h2>
 <p class="lead" style="margin-top:10px">Each project states the problem, the method and a measurable result.<i class="es" lang="es">Cada proyecto presenta el problema, el método y un resultado medible.</i></p>
-<div class="grid" style="margin-top:36px">
+<div class="grid" id="pj" style="margin-top:36px">
 <article class="card"><h3>Humanoid Robot<i class="es" lang="es">Robot humanoide</i></h3>
 <p>Bipedal robot driven by an ESP32 with six servos (three per leg) and gait control through hip, knee and ankle angles.<i class="es" lang="es">Robot bípedo controlado con un ESP32 y seis servos (tres por pierna), con marcha basada en ángulos de cadera, rodilla y tobillo.</i></p>
 <p class="result ph">#Aqui debes ingresar resultados con métricas (ej. velocidad, estabilidad, costo) y tu rol</p>
@@ -217,6 +221,15 @@ section{padding:72px 0}
 <a class="btn pri" href="#contact"><span>Email<i class="es" lang="es">Correo</i></span><span class="ph" style="color:inherit;font-size:.85rem">#Aqui debes ingresar tu correo</span></a>
 <a class="btn sec" href="#contact">LinkedIn<i class="es" lang="es">#Aqui debes ingresar tu enlace</i></a>
 <a class="btn sec" href="#contact">GitHub<i class="es" lang="es">#Aqui debes ingresar tu enlace</i></a>
+</div>
+<div class="cf">
+<h3 style="margin-bottom:14px">Send me a message<i class="es" lang="es">Envíame un mensaje</i></h3>
+<label>Name<i class="es" lang="es">Nombre</i><input id="cn" maxlength="80" autocomplete="name"></label>
+<label>Email<i class="es" lang="es">Correo</i><input id="ce" type="email" maxlength="120" autocomplete="email"></label>
+<label>Message<i class="es" lang="es">Mensaje</i><textarea id="cm" rows="5" maxlength="1500"></textarea></label>
+<input id="cc" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+<button class="btn pri" id="cs">Send<i class="es" lang="es">Enviar</i></button>
+<p id="cr" role="status" class="lead" style="margin-top:12px"></p>
 </div></div></section>
 </main>
 
@@ -229,11 +242,12 @@ section{padding:72px 0}
 <div class="bn">Automated assistant, not Marcelo himself. / Asistente automático, no es Marcelo.</div>
 <div class="bi"><input id="bt" type="text" placeholder="Type your question… / Escribe tu pregunta…" aria-label="Question / Pregunta"><button class="btn pri" id="bs">Send<i class="es" lang="es">Enviar</i></button></div>
 </div>
+<script>window.API_BASE=""; // #Aqui debes ingresar la URL de tu Worker, ej. https://portfolio-api.tu-usuario.workers.dev (sin barra final)</script>
 <script>
 (function(){
 // ===== CONFIGURACIÓN =====
 // Si despliegas un backend de IA (ver instrucciones), pon aquí su URL. Vacío = solo respuestas predefinidas.
-var ENDPOINT="";
+var ENDPOINT=window.API_BASE||"";
 var EMAIL="#Aqui debes ingresar tu correo";
 // Base de conocimiento: edita o añade entradas (k = palabras clave, en/es = respuesta).
 var KB=[
@@ -269,7 +283,7 @@ function isEs(t){t=t.toLowerCase();return /[ñáéíóú¿¡]/.test(t)||/(hola|q
 function add(t,c){var d=document.createElement("div");d.className="m "+c;d.textContent=t;bm.appendChild(d);bm.scrollTop=bm.scrollHeight}
 function local(t){var l=t.toLowerCase(),lg=isEs(t)?"es":"en",best=null,s=0;KB.forEach(function(e){var n=0;e.k.forEach(function(w){if(l.indexOf(w)>-1)n++});if(n>s){s=n;best=e}});return(best||FB)[lg]}
 async function send(t){t=t.trim();if(!t)return;add(t,"u");bt.value="";hist.push({role:"user",content:t});var r;
-if(ENDPOINT){try{var x=await fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:hist})});var j=await x.json();r=j.reply}catch(e){}}
+if(ENDPOINT){try{var x=await fetch(ENDPOINT+"/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:hist})});var j=await x.json();r=j.reply}catch(e){}}
 if(!r)r=local(t);hist.push({role:"assistant",content:r});add(r,"b")}
 function open(o){bot.classList.toggle("open",o);$("fab").setAttribute("aria-expanded",o);if(o){if(!greeted){greeted=true;add("Hi! I’m Marcelo’s automated assistant. Ask me about his projects, experience or availability. / ¡Hola! Soy el asistente automático de Marcelo. Pregúntame por sus proyectos, experiencia o disponibilidad.","b")}bt.focus()}}
 CH.forEach(function(c){var b=document.createElement("button");b.textContent=c[0]+" / "+c[1];b.onclick=function(){send(c[2])};$("bc").appendChild(b)});
@@ -277,5 +291,21 @@ $("fab").onclick=function(){open(!bot.classList.contains("open"))};$("bx").oncli
 $("bs").onclick=function(){send(bt.value)};bt.onkeydown=function(e){if(e.key==="Enter")send(bt.value)};
 })();
 </script>
+<script>
+(function(){var b=document.getElementById("cs"),r=document.getElementById("cr");
+function say(en,es){r.textContent=en+" / "+es}
+b.onclick=async function(){var g=function(i){return document.getElementById(i).value.trim()};
+var d={name:g("cn"),email:g("ce"),message:g("cm"),company:g("cc")};
+if(!d.name||!/^\S+@\S+\.\S+$/.test(d.email)||d.message.length<10){say("Please complete all fields.","Por favor completa todos los campos.");return}
+if(!window.API_BASE){say("The form is not connected yet.","El formulario aún no está conectado.");return}
+b.disabled=true;
+try{var x=await fetch(window.API_BASE+"/contact",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)});
+if(x.ok){say("Message sent. Thank you!","Mensaje enviado. ¡Gracias!");["cn","ce","cm"].forEach(function(i){document.getElementById(i).value=""})}
+else if(x.status===429)say("Too many messages, try again later.","Demasiados mensajes, inténtalo más tarde.");
+else say("Could not send. Please email me directly.","No se pudo enviar. Escríbeme directamente por correo.")}
+catch(e){say("Could not send. Please email me directly.","No se pudo enviar. Escríbeme directamente por correo.")}
+b.disabled=false}})();
+</script>
+<script src="web/projects.js" defer></script>
 </body>
 </html>
