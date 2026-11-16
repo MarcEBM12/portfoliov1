@@ -1,0 +1,10 @@
+name = "portfolio-api"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+# Orígenes permitidos, separados por coma, sin barra final
+ALLOWED_ORIGIN = "https://TU-PROYECTO.pages.dev,http://localhost:8080"
+TO_EMAIL = "#Aqui debes ingresar tu correo"
+# Dominio verificado en Resend
+FROM_EMAIL = "Portfolio <contacto@TU-DOMINIO.com>"
